@@ -654,17 +654,21 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 
-		if (Values.NULL.equals(list)) {
+		String elementId = IdentitySupport.getElementId(values);
+		Long internalId = IdentitySupport.getInternalId(values);
+
+		if (Values.NULL.equals(list) && (elementId != null || internalId != null)) {
 			String sourceNodeId;
 			Function<Relationship, String> sourceIdSelector;
 			Function<Relationship, String> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeElementId : Relationship::endNodeElementId;
-			if (IdentitySupport.getElementId(values) == null) {
+
+			if (internalId != null) {
 				// this can happen when someone used dto mapping and added the "classical" approach
-				sourceNodeId = Optional.ofNullable(IdentitySupport.getInternalId(values)).map(l -> Long.toString(l)).orElseThrow();
+				sourceNodeId = Long.toString(internalId);
 				Function<Relationship, Long> hlp = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
 				sourceIdSelector = hlp.andThen(l -> Long.toString(l));
 			} else {
-				sourceNodeId = IdentitySupport.getElementId(values);
+				sourceNodeId = elementId;
 				sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeElementId : Relationship::startNodeElementId;
 			}
 
@@ -732,7 +736,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				}
 				allMatchingTypeRelationshipsInResult.removeAll(relationshipsProcessed);
 			}
-		} else {
+		} else if (!Values.NULL.equals(list)) {
 			for (Value relatedEntity : list.asList(Function.identity())) {
 
 				Neo4jPersistentEntity<?> concreteTargetNodeDescription =
