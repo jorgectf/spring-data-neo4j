@@ -353,7 +353,7 @@ public final class TemplateSupport {
 	static <T> void setGeneratedIdIfNecessary(
 			Neo4jPersistentEntity<?> entityMetaData,
 			PersistentPropertyAccessor<T> propertyAccessor,
-			String elementId,
+			Object elementId,
 			Optional<Entity> databaseEntity
 	) {
 		if (!entityMetaData.isUsingInternalIds()) {
@@ -381,11 +381,11 @@ public final class TemplateSupport {
 	 * @param <T> The type of the entity
 	 * @return The actual related internal id being used.
 	 */
-	static <T> String retrieveOrSetRelatedId(
+	static <T> Object retrieveOrSetRelatedId(
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
 			Optional<Entity> databaseEntity,
-			@Nullable String relatedInternalId
+			@Nullable Object relatedInternalId
 	) {
 		if (!entityMetadata.isUsingInternalIds()) {
 			return Objects.requireNonNull(relatedInternalId);
@@ -403,7 +403,7 @@ public final class TemplateSupport {
 			}
 		} else {
 			if (relatedInternalId == null && current != null) {
-				relatedInternalId = (String) current;
+				relatedInternalId = current;
 			} else if (current == null) {
 				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
 			}
@@ -415,8 +415,8 @@ public final class TemplateSupport {
 	 * Checks if the renderer is configured in such a way that it will use element id or apply toString(id(n)) workaround.
 	 * @return {@literal true} if renderer will use elementId
 	 */
-	static boolean rendererCanUseElementIdIfPresent(Renderer renderer) {
-		return renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
+	static boolean rendererCanUseElementIdIfPresent(Renderer renderer, Neo4jPersistentEntity<?> targetEntity) {
+		return !targetEntity.isUsingDeprecatedInternalId() && targetEntity.isUsingInternalIds() && renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
 				.equals("RETURN elementId(n)");
 	}
 
