@@ -439,7 +439,6 @@ public enum CypherGenerator {
 
 	private static Function<Node, Expression> getNodeIdFunction(@Nullable Neo4jPersistentEntity<?> entity) {
 
-		
 		Function<Node, Expression> startNodeIdFunction;
 		var idProperty = entity.getRequiredIdProperty();
 		if (entity.isUsingInternalIds()) {
@@ -455,7 +454,7 @@ public enum CypherGenerator {
 	}
 
 	private static Function<Node, Expression> getEndNodeIdFunction(@Nullable Neo4jPersistentEntity<?> entity) {
-		
+
 		Function<Node, Expression> startNodeIdFunction;
 		if (entity == null) {
 			return Functions::elementId;
